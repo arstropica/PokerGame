@@ -298,7 +298,7 @@ void PokerEngine::handleBet(PokerPlayerPtr player)
 multimap<int, PokerPlayer::Outcome> PokerEngine::determineWinners()
 {
    long long maxScore = LLONG_MIN;
-   int winnerIdx, tieWinnerIdx = -1;
+   int winnerIdx = -1, tieWinnerIdx = -1;
    string maxCategory;
    string winner;
    string tieWinner;
@@ -312,27 +312,30 @@ multimap<int, PokerPlayer::Outcome> PokerEngine::determineWinners()
       long long handScore = hand->getScore();
       string handDescription = hand->getDescription();
       outcomes.push_back(outcome);
-      if (handScore > maxScore) {
-         maxScore = handScore;
-         maxCategory = handDescription;
-         winner = player->getName();
-         winnerIdx = i;
-      } else if (handScore == maxScore) {
-         tieWinner = player->getName();
-         tieWinnerIdx = i;
+      if (player->getState() != PokerPlayer::Status::FOLDED) {
+         if (handScore > maxScore) {
+            maxScore = handScore;
+            maxCategory = handDescription;
+            winner = player->getName();
+            winnerIdx = i;
+         } else if (handScore == maxScore) {
+            tieWinner = player->getName();
+            tieWinnerIdx = i;
+         }
+         Logger::trace("current maxScore: " + to_string(maxScore));
+         Logger::trace("current maxCategory: " + maxCategory);
+         Logger::trace("current winner: " + winner);
+         Logger::trace("current winnerIdx: " + to_string(winnerIdx));
+         if (tieWinnerIdx >= 0) {
+            Logger::trace("current tieWinner: " + tieWinner);
+            Logger::trace("current tieWinnerIdx: " + to_string(tieWinnerIdx));
+         }
       }
-      Logger::trace("current maxScore: " + to_string(maxScore));
-      Logger::trace("current maxCategory: " + maxCategory);
-      Logger::trace("current winner: " + winner);
-      Logger::trace("current winnerIdx: " + to_string(winnerIdx));
-      if (tieWinnerIdx >= 0) {
-         Logger::trace("current tieWinner: " + tieWinner);
-         Logger::trace("current tieWinnerIdx: " + to_string(tieWinnerIdx));
-      }
-      i++;
    }
 
-   winners.emplace(winnerIdx, outcomes.at(winnerIdx));
+   if (winnerIdx >= 0) {
+      winners.emplace(winnerIdx, outcomes.at(winnerIdx));
+   }
    if (tieWinnerIdx >= 0) {
       winners.emplace(tieWinnerIdx, outcomes.at(tieWinnerIdx));
    }
