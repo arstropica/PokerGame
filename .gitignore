@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# VS Code
+build/
+.vscode/
+.cache/
+.env
+
+# Catch2
+catch_amalgamated.hpp
+catch.v.2.13.8.hpp

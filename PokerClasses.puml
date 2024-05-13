@@ -1,0 +1,27 @@
+
+@startuml PokerDiagram
+hide empty members
+skinparam classAttributeIconSize 0
+class Card {}
+class CardCollection {}
+class Deck {}
+abstract class Hand {}
+class PokerHand {}
+abstract class PokerPlayer {}
+class AIPokerPlayer {}
+class HumanPokerPlayer {}
+class PokerEngine {}
+class PokerGame {}
+class PokerDemo {}
+Deck --|> CardCollection
+PokerHand --|> Hand
+Hand --|> CardCollection
+AIPokerPlayer --|> PokerPlayer
+HumanPokerPlayer --|> PokerPlayer
+PokerEngine ..> PokerPlayer
+PokerEngine ..> Deck
+PokerPlayer ..> PokerHand
+PokerGame ..> PokerEngine
+CardCollection ..> Card
+PokerDemo ..> PokerGame
+@enduml

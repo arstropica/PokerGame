@@ -1,0 +1,283 @@
+@startuml PokerGame
+hide empty members
+top to bottom direction
+
+/' Objects '/
+
+class AIPokerPlayer {
+	+AIPokerPlayer(std::shared_ptr<PokerEngine> engine, int id, double balance)
+	+AIPokerPlayer(std::shared_ptr<PokerEngine> engine, int id, double balance, Strategy strategy)
+	+~AIPokerPlayer()
+	#strategy : Strategy
+	+bet() : double
+	-{static} rng : static std::mt19937
+	+discard() : std::vector<int>
+}
+
+
+class Card {
+	+Card(std::string token)
+	+Card(std::string token, ORIENTATION orientation)
+	#Card()
+	#Card(ORIENTATION orientation)
+	#orientation : ORIENTATION
+	+isValid() : bool {query}
+	+operator==(const std::shared_ptr<Card>& other) : bool {query}
+	-valid : bool
+	+getRank() : char {query}
+	+getSuit() : char {query}
+	-rank : char
+	-suit : char
+	+flip() : int
+	+getOrientation() : int {query}
+	+getValue() : int {query}
+	-{static} legend : static const std::map<char, std::string>
+	+{static} ranks : static const std::vector<char>
+	+{static} suits : static const std::vector<char>
+	+operator<=>(const std::shared_ptr<Card>& other) : std :: weak_ordering {query}
+	+getName(bool verbose) : std::string {query}
+}
+
+
+class CardCollection {
+	+CardCollection()
+	+CardCollection(std::vector<std::shared_ptr<Card>> cards_v)
+	+~CardCollection()
+	+isEmpty() : bool {query}
+	+size() : size_t {query}
+	+get(int index) : std::shared_ptr<Card> {query}
+	+getCardsDescription(bool verbose) : std::string {query}
+	#cards : std::vector<std::shared_ptr<Card>>
+	+getCardNames(bool verbose) : std::vector<std::string> {query}
+	+add(const std::shared_ptr<Card>& card) : void
+	+remove(const std::shared_ptr<Card>& card) : void
+}
+
+
+class Deck {
+	+Deck()
+	+Deck(bool empty)
+	+deal(Card::ORIENTATION orientation) : std::shared_ptr<Card>
+	+reset() : void
+	+shuffle() : void
+}
+
+
+abstract class Hand {
+	+Hand()
+	+Hand(std::vector<std::shared_ptr<Card>> cards_v)
+	+{abstract} isValid() : bool {query}
+	+{abstract} operator==(const std::shared_ptr<Hand> other) : bool {query}
+	#{static} sort(const std::shared_ptr<Card>& a, const std::shared_ptr<Card>& b) : bool
+	#valid : bool
+	#{abstract} validate(const std::vector<std::shared_ptr<Card>>& cards) : bool
+	+compare(const std::shared_ptr<Hand> other) : int {query}
+	+{abstract} getCategory() : int {query}
+	+{abstract} getScore() : long long {query}
+	+operator+=(const std::shared_ptr<Card>& card) : std :: shared_ptr<Hand>
+	+operator-=(const std::shared_ptr<Card>& card) : std :: shared_ptr<Hand>
+	+{abstract} operator<=>(const std::shared_ptr<Hand> other) : std :: strong_ordering {query}
+	+{abstract} getDescription() : std::string {query}
+	+{abstract} getScore(bool grouped) : std::string {query}
+	#{abstract} parse(const std::string notation) : std::vector<std::shared_ptr<Card>>
+	+add(const std::shared_ptr<Card>& card) : void
+	#{abstract} compute() : void
+	#{abstract} process() : void
+	+remove(const std::shared_ptr<Card>& card) : void
+}
+
+
+class HumanPokerPlayer {
+	+HumanPokerPlayer(std::shared_ptr<PokerEngine> engine, int id, double balance)
+	+~HumanPokerPlayer()
+	#prompt(std::string message) : bool
+	+bet() : double
+	-captureBet() : double
+	+discard() : std::vector<int>
+}
+
+
+class Logger {
+	-Logger()
+	+{static} getInstance() : std::shared_ptr<spdlog::logger>&
+	+{static} console(std::string message) : void
+	+{static} console(std::string message, bool newline) : void
+	+{static} debug(std::string message) : void
+	+{static} error(std::string message) : void
+	+{static} info(std::string message) : void
+	+{static} set_level(spdlog::level::level_enum level) : void
+	+{static} trace(std::string message) : void
+	+{static} warn(std::string message) : void
+}
+
+
+class PokerEngine {
+	+PokerEngine()
+	+PokerEngine(double ante)
+	+PokerEngine(std::shared_ptr<Deck> deck)
+	+~PokerEngine()
+	-ante : double
+	-blind : double
+	+getBlind() : double {query}
+	+getPot() : double {query}
+	-pot : double
+	#getCurrentRound() : int {query}
+	+{static} DEFAULT_ANTE : static constexpr double
+	-determineWinners() : std::multimap<int , PokerPlayer::Outcome>
+	+endGame(bool output) : std::multimap<long long , PokerPlayer::Outcome>
+	#showDown() : std::multimap<long long , PokerPlayer::Outcome>
+	-deck : std::shared_ptr<Deck>
+	-discards : std::shared_ptr<Deck>
+	+getCurrentPlayer() : std::shared_ptr<PokerPlayer> {query}
+	+{static} formatCurrency(double amount) : std::string
+	-{static} getCategoryDescription(PokerHand::Category category) : std::string
+	-getPlayersByState(PokerPlayer::Status state) : std::vector<std::shared_ptr<PokerPlayer>> {query}
+	-players : std::vector<std::shared_ptr<PokerPlayer>>
+	+addPlayer(std::shared_ptr<PokerPlayer> player) : void
+	#advanceRound() : void
+	#anteUp() : void
+	#bettingRound() : void
+	#dealCards() : void
+	#drawingRound() : void
+	-handleBet(std::shared_ptr<PokerPlayer> player) : void
+	-handleDraw(std::shared_ptr<PokerPlayer> player) : void
+	-printResults(std::multimap<int, PokerPlayer::Outcome> winners) : void
+	#prompt(std::string message) : void
+	-recycleDiscards() : void
+	+setAnte(double ante) : void
+	-shuffleDeck() : void
+	+startGame() : void
+}
+
+
+class PokerGame {
+	+PokerGame()
+	+PokerGame(std::shared_ptr<PokerEngine> engine)
+	#promptStrategy() : int
+	#gameEngine : std::shared_ptr<PokerEngine>
+	#displayResults() : void
+	#initialize() : void
+	+run() : void
+	#setupPlayers() : void
+}
+
+class PokerHand {
+	+PokerHand()
+	+PokerHand(std::string notation)
+	+PokerHand(std::vector<std::shared_ptr<Card>>& cards)
+	+compare(const std::shared_ptr<Hand> other) : Comparison {query}
+	-detail : Detail
+	-countPairs() : bool {query}
+	-isFlush() : bool {query}
+	-isFourOfAKind() : bool {query}
+	-isFullHouse() : bool {query}
+	-isOnePair() : bool {query}
+	-isStraight() : bool {query}
+	-isThreeOfAKind() : bool {query}
+	-isTwoPair() : bool {query}
+	+isValid() : bool {query}
+	+operator==(const std::shared_ptr<Hand> other) : bool {query}
+	#validate(const std::vector<std::shared_ptr<Card>>& cards) : bool
+	-getCardinality(const bool inverse) : int {query}
+	+getCategory() : int {query}
+	-getOrdinality(int startIdx) : long long {query}
+	+getScore() : long long {query}
+	+{static} HBWIDTH : static const int
+	+{static} HAND_NAMES : static const std::vector<std::string>
+	+operator<=>(const std::shared_ptr<Hand> other) : std :: strong_ordering {query}
+	+getDescription() : std::string {query}
+	+getScore(bool grouped) : std::string {query}
+	+indexByCardinality(const int cardinality) : std::vector<int> {query}
+	+indexByCategory(Category category) : std::vector<int> {query}
+	#parse(const std::string notation) : std::vector<std::shared_ptr<Card>>
+	+getCardNames(bool verbose) : std::vector<std::string> {query}
+	#compute() : void
+	#process() : void
+}
+
+
+abstract class PokerPlayer {
+	+PokerPlayer(std::shared_ptr<PokerEngine> engine, int id, UserType type, double startBal)
+	+~PokerPlayer()
+	+replace(std::vector<int> idxs, CardCollection& repts) : CardCollection
+	+show() : Outcome {query}
+	#state : Status
+	+type : UserType
+	+bet(double amount) : bool
+	#balance : double
+	+{abstract} bet() : double
+	+getState() : int {query}
+	-id : int
+	#engine : std::shared_ptr<PokerEngine>
+	#hand : std::shared_ptr<PokerHand>
+	+getName() : std::string {query}
+	+{abstract} discard() : std::vector<int>
+	+allIn(double amount) : void
+	+call(double amount) : void
+	+fold() : void
+	+raise(double amount) : void
+	+receive(CardCollection cards) : void
+	+setState(Status state) : void
+}
+
+
+/' Inheritance relationships '/
+
+.CardCollection <|-- .Deck
+
+.CardCollection <|-- .Hand
+
+.Hand <|-- .PokerHand
+
+.PokerPlayer <|-- .AIPokerPlayer
+
+.PokerPlayer <|-- .HumanPokerPlayer
+
+
+
+/' Aggregation relationships '/
+
+.CardCollection *-- .Card
+
+.PokerEngine *-- .Deck
+
+.PokerEngine *-- .PokerPlayer
+
+.PokerGame *-- .PokerEngine
+
+.PokerPlayer *-- .PokerEngine
+
+.PokerPlayer *-- .PokerHand
+
+
+/' Dependency relationships '/
+
+.Card <.. .CardCollection
+
+.Card <.. .Deck
+
+.Card <.. .Hand
+
+.Card <.. .PokerHand
+
+.Card <.. .PokerPlayer
+
+.Deck <.. .PokerEngine
+
+.Hand <.. .Hand
+
+.Hand <.. .PokerEngine
+
+.Hand <.. .PokerHand
+
+.PokerEngine <.. .AIPokerPlayer
+
+.PokerEngine <.. .HumanPokerPlayer
+
+.PokerEngine <.. .PokerGame
+
+.PokerEngine <.. .PokerPlayer
+
+.PokerPlayer <.. .PokerEngine
+
+@enduml

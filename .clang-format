@@ -1,0 +1,58 @@
+---
+# Specifies that we're basing our style on LLVM as a starting point
+BasedOnStyle: LLVM
+
+# Indent width set to 4 spaces
+IndentWidth: 3
+
+# Column limit set to 80
+ColumnLimit: 80
+
+# Prevents short if statements from being placed on a single line
+AllowShortIfStatementsOnASingleLine: false
+
+# Prevents short functions from being placed on multiple lines
+AllowShortFunctionsOnASingleLine: Empty
+
+# Prevents short blocks from being placed on multiple lines
+AllowShortBlocksOnASingleLine: Empty
+
+# Enforce braces on single-line conditionals
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:      true
+  AfterControlStatement: false
+  AfterEnum:       true
+  AfterFunction:   true
+  AfterNamespace:  true
+  AfterObjCDeclaration: true
+  AfterStruct:     true
+  AfterUnion:      true
+  BeforeCatch:     false
+  BeforeElse:      false
+  IndentBraces:    false
+  SplitEmptyFunction: false
+
+# Sort includes alphabetically
+SortIncludes: true
+
+# Use tab for indentation
+UseTab: Never
+
+# Specifies the maximum number of consecutive empty lines to keep
+MaxEmptyLinesToKeep: 1
+
+# Pointer alignment: Right means int *x;
+PointerAlignment: Right
+
+# Allow aligning after opening bracket
+AlignAfterOpenBracket: BlockIndent
+
+# Indent cases in switch statements
+IndentCaseLabels: true
+
+# Single line declarations?
+KeepEmptyLinesAtTheStartOfBlocks: false
+
+BinPackArguments: false
+AllowAllArgumentsOnNextLine: false
